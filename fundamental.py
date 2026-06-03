@@ -1,19 +1,8 @@
-# fundamental.py — คำนวณ ratios พื้นฐานจากงบการเงิน
+# fundamental.py — คำนวณ ratios พื้นฐานจากข้อมูลของ Yahoo Finance
 
 from __future__ import annotations
 from typing import Optional
-import numpy as np
-from data import get_info, get_financials
-
-
-def safe_pct(new, old) -> Optional[float]:
-    """คำนวณ % growth ป้องกัน ZeroDivision และค่า None"""
-    try:
-        if old and old != 0:
-            return (new - old) / abs(old) * 100
-    except Exception:
-        pass
-    return None
+from data import get_info
 
 
 def get_fundamentals(ticker: str) -> dict:
@@ -22,17 +11,14 @@ def get_fundamentals(ticker: str) -> dict:
     ถ้าข้อมูลไม่มี จะ return None สำหรับ key นั้น ๆ
     """
     info = get_info(ticker)
-    income, _ = get_financials(ticker)
 
     result = {}
 
     # ---- Revenue growth YoY ----
-    try:
-        rev = income.loc["Total Revenue"]
-        # คอลัมน์เรียงจากล่าสุด → เก่าสุด
-        result["revenue_growth"] = safe_pct(rev.iloc[0], rev.iloc[1])
-    except Exception:
-        result["revenue_growth"] = None
+    # Yahoo ให้ค่านี้ใน info อยู่แล้ว (decimal เช่น 0.166 = 16.6%)
+    # ไม่ต้องดึงงบการเงินแยก ช่วยลด network call ต่อหุ้น
+    rev_growth = info.get("revenueGrowth")
+    result["revenue_growth"] = rev_growth * 100 if rev_growth is not None else None
 
     # ---- EPS growth YoY (จาก info เพราะ Yahoo ให้ trailing/forward EPS) ----
     try:

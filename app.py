@@ -1,10 +1,14 @@
 # app.py — Streamlit dashboard หลัก
 # รัน: streamlit run app.py
 
+import threading
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+from streamlit.runtime.scriptrunner import add_script_run_ctx, get_script_run_ctx
 
 from config import WATCHLIST
 from data import get_price_history
@@ -36,6 +40,34 @@ def _fmt_mcap(val) -> str:
     if val >= 1e9:
         return f"${val/1e9:.1f}B"
     return f"${val/1e6:.1f}M"
+
+
+def fetch_all(tickers, progress=None):
+    """
+    ดึง fundamentals + technicals ของทุก ticker แบบขนาน (parallel)
+    เร็วกว่าวนทีละตัวมาก เพราะแต่ละตัวเสียเวลารอ network อยู่เฉย ๆ
+    คืนค่า list ของ (ticker, fund, tech) เรียงตามลำดับ watchlist เดิม
+    """
+    ctx = get_script_run_ctx()  # context ของ Streamlit (ส่งต่อให้ thread ใช้ cache ได้)
+
+    def _one(t):
+        # ผูก context เข้ากับ worker thread เพื่อให้ @st.cache_data ทำงาน
+        add_script_run_ctx(threading.current_thread(), ctx)
+        try:
+            return t, get_fundamentals(t), get_technicals(t)
+        except Exception:
+            return t, {}, {}
+
+    results = {}
+    with ThreadPoolExecutor(max_workers=10) as ex:
+        futures = [ex.submit(_one, t) for t in tickers]
+        for done, fut in enumerate(as_completed(futures), start=1):
+            t, fund, tech = fut.result()
+            results[t] = (fund, tech)
+            if progress is not None:
+                progress.progress(done / len(tickers))
+
+    return [(t, results[t][0], results[t][1]) for t in tickers if t in results]
 
 
 # ---- Sidebar: watchlist ----
@@ -142,26 +174,20 @@ elif page == "Screener":
     only_macd_bullish = st.checkbox("MACD Bullish เท่านั้น", value=False)
 
     if st.button("Run Screener"):
-        rows = []
         progress = st.progress(0)
-        for i, t in enumerate(watchlist):
-            try:
-                fund = get_fundamentals(t)
-                tech = get_technicals(t)
-                rows.append({
-                    "Ticker": t,
-                    "Name": fund.get("name", t)[:30],
-                    "Price": fund.get("price"),
-                    "Rev Growth %": fund.get("revenue_growth"),
-                    "EPS Growth %": fund.get("eps_growth"),
-                    "PEG": fund.get("peg"),
-                    "Net Margin %": fund.get("net_margin"),
-                    "MACD Bullish": tech.get("macd_bullish"),
-                    "vs MA50 %": tech.get("price_vs_ma50"),
-                })
-            except Exception as e:
-                st.warning(f"{t}: {e}")
-            progress.progress((i + 1) / len(watchlist))
+        rows = []
+        for t, fund, tech in fetch_all(watchlist, progress):
+            rows.append({
+                "Ticker": t,
+                "Name": fund.get("name", t)[:30],
+                "Price": fund.get("price"),
+                "Rev Growth %": fund.get("revenue_growth"),
+                "EPS Growth %": fund.get("eps_growth"),
+                "PEG": fund.get("peg"),
+                "Net Margin %": fund.get("net_margin"),
+                "MACD Bullish": tech.get("macd_bullish"),
+                "vs MA50 %": tech.get("price_vs_ma50"),
+            })
 
         df = pd.DataFrame(rows)
 
@@ -183,24 +209,18 @@ elif page == "Scoring":
     st.title("Scoring — ภาพรวม Watchlist")
 
     if st.button("คำนวณคะแนนทั้งหมด"):
-        rows = []
         progress = st.progress(0)
-        for i, t in enumerate(watchlist):
-            try:
-                fund = get_fundamentals(t)
-                tech = get_technicals(t)
-                s = score_total(fund, tech)
-                rows.append({
-                    "Ticker": t,
-                    "Name": fund.get("name", t)[:25],
-                    "Growth": s["growth"],
-                    "Technical": s["technical"],
-                    "Valuation": s["valuation"],
-                    "Total": s["total"],
-                })
-            except Exception as e:
-                st.warning(f"{t}: {e}")
-            progress.progress((i + 1) / len(watchlist))
+        rows = []
+        for t, fund, tech in fetch_all(watchlist, progress):
+            s = score_total(fund, tech)
+            rows.append({
+                "Ticker": t,
+                "Name": fund.get("name", t)[:25],
+                "Growth": s["growth"],
+                "Technical": s["technical"],
+                "Valuation": s["valuation"],
+                "Total": s["total"],
+            })
 
         df = pd.DataFrame(rows).sort_values("Total", ascending=False).reset_index(drop=True)
         st.dataframe(
