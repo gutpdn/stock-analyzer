@@ -79,7 +79,7 @@ custom = st.sidebar.text_area(
 )
 watchlist = [t.strip().upper() for t in custom.splitlines() if t.strip()]
 
-page = st.sidebar.radio("หน้า", ["ดูทีละตัว", "Screener", "Scoring"])
+page = st.sidebar.radio("หน้า", ["ภาพรวม", "ดูทีละตัว", "Screener"])
 
 # ==============================================================
 # หน้า 1: ดูทีละตัว
@@ -203,38 +203,53 @@ elif page == "Screener":
 
 
 # ==============================================================
-# หน้า 3: Scoring
+# หน้า: ภาพรวม — สแกนทุกตัวก่อนเจาะรายตัว
 # ==============================================================
-elif page == "Scoring":
-    st.title("Scoring — ภาพรวม Watchlist")
+elif page == "ภาพรวม":
+    st.title("ภาพรวม Watchlist")
+    st.caption("สแกนทุกตัวในตารางเดียว กดหัวคอลัมน์เพื่อ sort • คลิกหุ้นที่สนใจแล้วไปดูเจาะที่หน้า 'ดูทีละตัว'")
 
-    if st.button("คำนวณคะแนนทั้งหมด"):
+    if st.button("โหลดข้อมูล"):
         progress = st.progress(0)
         rows = []
         for t, fund, tech in fetch_all(watchlist, progress):
-            s = score_total(fund, tech)
             rows.append({
                 "Ticker": t,
-                "Name": fund.get("name", t)[:25],
-                "Growth": s["growth"],
-                "Technical": s["technical"],
-                "Valuation": s["valuation"],
-                "Total": s["total"],
+                "Name": fund.get("name", t)[:22],
+                "Sector": fund.get("sector", "N/A"),
+                "Price": fund.get("price"),
+                # ---- Valuation (ถูก/แพง) ----
+                "P/E": fund.get("pe_trailing"),
+                "Fwd P/E": fund.get("pe_forward"),
+                "PEG": fund.get("peg"),
+                # ---- Growth ----
+                "Rev Growth %": fund.get("revenue_growth"),
+                "EPS Growth %": fund.get("eps_growth"),
+                # ---- Quality (กัน value trap) ----
+                "Net Margin %": fund.get("net_margin"),
+                "ROE %": fund.get("roe"),
+                # ---- Technical ย่อ ----
+                "vs MA50 %": tech.get("price_vs_ma50"),
+                "MACD": "Bullish" if tech.get("macd_bullish") else "Bearish",
             })
 
-        df = pd.DataFrame(rows).sort_values("Total", ascending=False).reset_index(drop=True)
-        st.dataframe(
-            df.style.background_gradient(subset=["Total", "Growth", "Technical", "Valuation"], cmap="RdYlGn"),
-            use_container_width=True,
-        )
+        df = pd.DataFrame(rows)
 
-        # Bar chart top 10
-        top = df.head(10)
-        fig = go.Figure()
-        fig.add_bar(name="Growth", x=top["Ticker"], y=top["Growth"])
-        fig.add_bar(name="Technical", x=top["Ticker"], y=top["Technical"])
-        fig.add_bar(name="Valuation", x=top["Ticker"], y=top["Valuation"])
-        fig.update_layout(barmode="group", title="Top 10 — คะแนนแยกด้าน", yaxis_range=[0, 10])
-        st.plotly_chart(fig, use_container_width=True)
+        # ไฮไลต์สีช่วยสแกนเร็ว ๆ:
+        #  - PEG ต่ำ = ถูกเทียบ growth → เขียว (ใช้ cmap กลับด้าน _r)
+        #  - Growth / Quality สูง = ดี → เขียว
+        green_good = ["Rev Growth %", "EPS Growth %", "Net Margin %", "ROE %"]
+        styled = (
+            df.style
+            .background_gradient(subset=["PEG"], cmap="RdYlGn_r")
+            .background_gradient(subset=green_good, cmap="RdYlGn")
+            .format(precision=2)
+        )
+        st.dataframe(styled, use_container_width=True, height=600)
+
+        st.caption(
+            "อ่านยังไง: ดู **PEG** (≤1 ถูก / >2 แพงเทียบ growth) คู่กับ **Rev/EPS Growth** "
+            "ว่ายังโตไหม และเช็ก **Net Margin / ROE** ว่าธุรกิจแข็งแรง (กัน value trap)"
+        )
 
 

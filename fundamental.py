@@ -45,6 +45,7 @@ def get_fundamentals(ticker: str) -> dict:
     result["sector"] = info.get("sector", "N/A")
     result["market_cap"] = info.get("marketCap")
     result["pe_trailing"] = info.get("trailingPE")
+    result["pe_forward"] = info.get("forwardPE")  # P/E จากกำไรคาดการณ์
     result["price"] = info.get("currentPrice") or info.get("regularMarketPrice")
 
     return result
