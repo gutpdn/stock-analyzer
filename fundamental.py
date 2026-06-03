@@ -1,10 +1,12 @@
 # fundamental.py — คำนวณ ratios พื้นฐานจากงบการเงิน
 
+from __future__ import annotations
+from typing import Optional
 import numpy as np
 from data import get_info, get_financials
 
 
-def safe_pct(new, old) -> float | None:
+def safe_pct(new, old) -> Optional[float]:
     """คำนวณ % growth ป้องกัน ZeroDivision และค่า None"""
     try:
         if old and old != 0:
@@ -62,7 +64,7 @@ def get_fundamentals(ticker: str) -> dict:
     return result
 
 
-def _pct_from_info(info: dict, key: str) -> float | None:
+def _pct_from_info(info: dict, key: str) -> Optional[float]:
     """Yahoo เก็บ ratio เป็น decimal (0.25) → แปลงเป็น % (25.0)"""
     val = info.get(key)
     if val is not None:

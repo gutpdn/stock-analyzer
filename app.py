@@ -14,6 +14,30 @@ from scoring import score_total
 
 st.set_page_config(page_title="Stock Analyzer", layout="wide")
 
+
+# ---- Helper formatters (ต้องนิยามก่อนใช้) ----
+def _fmt(val, decimals=2) -> str:
+    if val is None:
+        return "N/A"
+    return f"{val:.{decimals}f}"
+
+
+def _pct(val) -> str:
+    if val is None:
+        return "N/A"
+    return f"{val:+.2f}%"
+
+
+def _fmt_mcap(val) -> str:
+    if val is None:
+        return "N/A"
+    if val >= 1e12:
+        return f"${val/1e12:.1f}T"
+    if val >= 1e9:
+        return f"${val/1e9:.1f}B"
+    return f"${val/1e6:.1f}M"
+
+
 # ---- Sidebar: watchlist ----
 st.sidebar.title("Stock Analyzer")
 custom = st.sidebar.text_area(
@@ -194,24 +218,3 @@ elif page == "Scoring":
         st.plotly_chart(fig, use_container_width=True)
 
 
-# ---- Helper formatters ----
-def _fmt(val, decimals=2) -> str:
-    if val is None:
-        return "N/A"
-    return f"{val:.{decimals}f}"
-
-
-def _pct(val) -> str:
-    if val is None:
-        return "N/A"
-    return f"{val:+.2f}%"
-
-
-def _fmt_mcap(val) -> str:
-    if val is None:
-        return "N/A"
-    if val >= 1e12:
-        return f"${val/1e12:.1f}T"
-    if val >= 1e9:
-        return f"${val/1e9:.1f}B"
-    return f"${val/1e6:.1f}M"

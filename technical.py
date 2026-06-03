@@ -1,5 +1,7 @@
 # technical.py — คำนวณ indicator เทคนิคอล (MA50, MA200, MACD)
 
+from __future__ import annotations
+from typing import Optional
 import pandas as pd
 from data import get_price_history
 
@@ -59,7 +61,7 @@ def get_technicals(ticker: str) -> dict:
     }
 
 
-def _pct_vs(price, ma) -> float | None:
+def _pct_vs(price, ma) -> Optional[float]:
     """% ที่ราคาอยู่เหนือ/ใต้ MA"""
     if ma is None or pd.isna(ma) or ma == 0:
         return None
