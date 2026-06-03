@@ -1,18 +1,18 @@
 # config.py — ปรับเกณฑ์การให้คะแนนได้ที่นี่
 
-# รายชื่อหุ้นใน watchlist เริ่มต้น — 80 ตัวแรกของ S&P 500 (เรียงตามตัวอักษร)
-# หมายเหตุ: ticker ที่มีจุด เช่น BRK.B / BF.B ใช้ขีดกลางตามรูปแบบของ yfinance
+# รายชื่อหุ้นใน watchlist เริ่มต้น — 80 บริษัทใหญ่สุดของ S&P 500 (เรียงตาม market cap)
+# หมายเหตุ: ticker ที่มีจุด เช่น BRK.B ใช้ขีดกลาง (BRK-B) ตามรูปแบบของ yfinance
 WATCHLIST = [
-    "A", "AAPL", "ABBV", "ABNB", "ABT", "ACGL", "ACN", "ADBE",
-    "ADI", "ADM", "ADP", "ADSK", "AEE", "AEP", "AES", "AFL",
-    "AIG", "AIZ", "AJG", "AKAM", "ALB", "ALGN", "ALL", "ALLE",
-    "AMAT", "AMCR", "AMD", "AME", "AMGN", "AMP", "AMT", "AMZN",
-    "ANET", "ANSS", "AON", "AOS", "APA", "APD", "APH", "APTV",
-    "ARE", "ATO", "AVB", "AVGO", "AVY", "AWK", "AXON", "AXP",
-    "AZO", "BA", "BAC", "BALL", "BAX", "BBY", "BDX", "BEN",
-    "BF-B", "BG", "BIIB", "BK", "BKNG", "BKR", "BLDR", "BLK",
-    "BMY", "BR", "BRK-B", "BRO", "BSX", "BWA", "BX", "BXP",
-    "C", "CAG", "CAH", "CARR", "CAT", "CB", "CBOE", "CBRE",
+    "NVDA", "MSFT", "AAPL", "AMZN", "GOOGL", "META", "AVGO", "TSLA",
+    "BRK-B", "JPM", "WMT", "LLY", "V", "ORCL", "MA", "NFLX",
+    "XOM", "COST", "JNJ", "HD", "PG", "ABBV", "BAC", "PLTR",
+    "KO", "UNH", "PM", "CSCO", "CRM", "WFC", "IBM", "GE",
+    "CVX", "ABT", "MCD", "LIN", "NOW", "AXP", "MRK", "T",
+    "ISRG", "ACN", "PEP", "GS", "MS", "TMO", "INTU", "DIS",
+    "AMD", "TXN", "QCOM", "BKNG", "ADBE", "CAT", "RTX", "VZ",
+    "SPGI", "BSX", "AMGN", "PGR", "BA", "UNP", "NEE", "DHR",
+    "HON", "C", "GILD", "SCHW", "LOW", "PFE", "SYK", "COF",
+    "ETN", "TJX", "BLK", "CMCSA", "ADP", "DE", "AMAT", "MMC",
 ]
 
 # ---- เกณฑ์ Growth Score (0-10) ----
