@@ -1,9 +1,18 @@
 # config.py — ปรับเกณฑ์การให้คะแนนได้ที่นี่
 
-# รายชื่อหุ้นใน watchlist เริ่มต้น (ใส่ ticker symbol ของ US ได้เลย)
+# รายชื่อหุ้นใน watchlist เริ่มต้น — 80 ตัวแรกของ S&P 500 (เรียงตามตัวอักษร)
+# หมายเหตุ: ticker ที่มีจุด เช่น BRK.B / BF.B ใช้ขีดกลางตามรูปแบบของ yfinance
 WATCHLIST = [
-    "AAPL", "MSFT", "GOOGL", "AMZN", "NVDA",
-    "META", "TSLA", "AMD", "CRM", "ADBE",
+    "A", "AAPL", "ABBV", "ABNB", "ABT", "ACGL", "ACN", "ADBE",
+    "ADI", "ADM", "ADP", "ADSK", "AEE", "AEP", "AES", "AFL",
+    "AIG", "AIZ", "AJG", "AKAM", "ALB", "ALGN", "ALL", "ALLE",
+    "AMAT", "AMCR", "AMD", "AME", "AMGN", "AMP", "AMT", "AMZN",
+    "ANET", "ANSS", "AON", "AOS", "APA", "APD", "APH", "APTV",
+    "ARE", "ATO", "AVB", "AVGO", "AVY", "AWK", "AXON", "AXP",
+    "AZO", "BA", "BAC", "BALL", "BAX", "BBY", "BDX", "BEN",
+    "BF-B", "BG", "BIIB", "BK", "BKNG", "BKR", "BLDR", "BLK",
+    "BMY", "BR", "BRK-B", "BRO", "BSX", "BWA", "BX", "BXP",
+    "C", "CAG", "CAH", "CARR", "CAT", "CB", "CBOE", "CBRE",
 ]
 
 # ---- เกณฑ์ Growth Score (0-10) ----
