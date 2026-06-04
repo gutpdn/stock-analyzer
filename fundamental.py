@@ -10,7 +10,12 @@ def get_fundamentals(ticker: str) -> dict:
     รวม ratios ที่ต้องการทั้งหมดไว้ใน dict เดียว
     ถ้าข้อมูลไม่มี จะ return None สำหรับ key นั้น ๆ
     """
-    info = get_info(ticker)
+    # get_info อาจ raise ถ้า Yahoo ส่งข้อมูลไม่ครบ → ถือเป็นว่างไว้ก่อน
+    # (ค่าที่ได้จะเป็น N/A เฉพาะรอบนี้ และจะถูกลองใหม่รอบหน้า เพราะไม่ถูก cache)
+    try:
+        info = get_info(ticker)
+    except Exception:
+        info = {}
 
     result = {}
 
@@ -38,7 +43,11 @@ def get_fundamentals(ticker: str) -> dict:
     result["roe"] = _pct_from_info(info, "returnOnEquity")
 
     # ---- PEG ----
-    result["peg"] = info.get("pegRatio")
+    # ใช้ pegRatio เป็นหลัก ถ้าไม่มีค่อย fallback เป็น trailingPegRatio
+    peg = info.get("pegRatio")
+    if peg is None:
+        peg = info.get("trailingPegRatio")
+    result["peg"] = peg
 
     # ---- ข้อมูลทั่วไป ----
     result["name"] = info.get("longName", ticker)
